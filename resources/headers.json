@@ -1,0 +1,13 @@
+{
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0",
+  "Accept": "application/json, text/plain, */*",
+  "Accept-Language": "en-GB,en;q=0.5",
+  "Content-Type": "application/json",
+  "Origin": "https://chelseafc.3ddigitalvenue.com",
+  "Connection": "keep-alive",
+  "Referer": "https://chelseafc.3ddigitalvenue.com/",
+  "Sec-Fetch-Dest": "empty",
+  "Sec-Fetch-Mode": "cors",
+  "Sec-Fetch-Site": "same-site",
+  "Host": "smp.eu-west-1.service.3ddigitalvenue.com"
+}
