@@ -30,13 +30,13 @@ def start_script(event_id, supporter_numbers, num_of_attempts):
 
 if __name__ == '__main__':
 
-    start_time = "09:59:59"
+    on_sale_time = "09:59:59"
     supporter_numbers = []
     event_id = ""
     num_of_attempts = 1
 
-    print("Waiting for start time: " + start_time)
-    while time.strftime("%H:%M:%S") < start_time:
+    print("Waiting for start time: " + on_sale_time)
+    while time.strftime("%H:%M:%S") < on_sale_time:
         print("Current time: " + time.strftime("%H:%M:%S"))
         time.sleep(0.5)
     start_script(event_id, supporter_numbers, num_of_attempts)
