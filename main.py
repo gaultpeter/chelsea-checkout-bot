@@ -6,7 +6,7 @@ from login import handle_login
 from checkout import start_checkout
 
 
-def start_script(event_id, customer_ids, num_of_attempts):
+def start_script(event_id, supporter_numbers, num_of_attempts):
     with open("./resources/headers.json", "r") as headers_file:
         headers = json.load(headers_file)
     with open("resources/login_details.json", "r") as login_details_file:
@@ -19,7 +19,7 @@ def start_script(event_id, customer_ids, num_of_attempts):
     headers['Cookie'] = session_id
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(start_checkout, session_id, event_id, headers, customer_ids, csrf, login_response)
+        futures = [executor.submit(start_checkout, session_id, event_id, headers, supporter_numbers, csrf, login_response)
                    for _ in
                    range(num_of_attempts)]
         for future in concurrent.futures.as_completed(futures):
@@ -31,7 +31,7 @@ def start_script(event_id, customer_ids, num_of_attempts):
 if __name__ == '__main__':
 
     start_time = "09:59:59"
-    customer_ids = []
+    supporter_numbers = []
     event_id = ""
     num_of_attempts = 1
 
@@ -39,4 +39,4 @@ if __name__ == '__main__':
     while time.strftime("%H:%M:%S") < start_time:
         print("Current time: " + time.strftime("%H:%M:%S"))
         time.sleep(0.5)
-    start_script(event_id, customer_ids, num_of_attempts)
+    start_script(event_id, supporter_numbers, num_of_attempts)

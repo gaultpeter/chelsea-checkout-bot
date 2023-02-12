@@ -7,12 +7,12 @@ from checkout_handler import sale_transaction_put, post_checkout
 from ipg_online_payment import ipg_online_payment_processing
 
 
-def start_checkout(session_id, event_id, headers, customer_ids, csrf, login_response):
+def start_checkout(session_id, event_id, headers, supporter_numbers, csrf, login_response):
     seating_response = get_seating(session_id, event_id, headers)
     threads = []
     for stand_id, stand_data in seating_response.items():
         if stand_data.get("prices").get("ADULT"):
-            t = threading.Thread(target=checkout, args=(session_id, event_id, stand_id, customer_ids,
+            t = threading.Thread(target=checkout, args=(session_id, event_id, stand_id, supporter_numbers,
                                                         stand_data, headers, csrf, login_response))
             threads.append(t)
             t.start()
@@ -20,9 +20,9 @@ def start_checkout(session_id, event_id, headers, customer_ids, csrf, login_resp
         t.join()
 
 
-def checkout(session_id, event_id, stand_id, customer_ids, stand_data, headers, csrf, login_response):
+def checkout(session_id, event_id, stand_id, supporter_numbers, stand_data, headers, csrf, login_response):
     print(f"Checking out tickets in: {stand_data['name']}")
-    checkout_response = post_checkout(session_id, stand_id, event_id, customer_ids, stand_data, headers)
+    checkout_response = post_checkout(session_id, stand_id, event_id, supporter_numbers, stand_data, headers)
     if checkout_response.status_code==201:
         cart_id = json.loads(checkout_response.text)['id']
         sale_transaction_put_response = sale_transaction_put(cart_id, session_id, csrf, login_response)

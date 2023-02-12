@@ -72,7 +72,7 @@ def sale_transaction_put(cart_id, session_id, csrf, login_response):
         )
 
 
-def post_checkout(session_id, stand_id, event_id, customer_ids, stand_data, headers):
+def post_checkout(session_id, stand_id, event_id, supporter_numbers, stand_data, headers):
     cookies = {
         'sessionid': session_id,
     }
@@ -80,7 +80,7 @@ def post_checkout(session_id, stand_id, event_id, customer_ids, stand_data, head
     json_data = {
         'event': event_id,
         'price_scale': stand_id,
-        'friends_family_accounts': create_friends_family_accounts(customer_ids, stand_data),
+        'friends_family_accounts': create_friends_family_accounts(supporter_numbers, stand_data),
     }
 
     response = requests.post(
@@ -93,10 +93,10 @@ def post_checkout(session_id, stand_id, event_id, customer_ids, stand_data, head
     return response
 
 
-def create_friends_family_accounts(customer_ids, stand_data):
+def create_friends_family_accounts(supporter_numbers, stand_data):
     friends_family_accounts = []
-    for customerId in customer_ids:
-        friends_family_account = {"customer": customerId, "seats": create_adult_seats(stand_data)}
+    for supporter_number in supporter_numbers:
+        friends_family_account = {"customer": supporter_number, "seats": create_adult_seats(stand_data)}
         friends_family_accounts.append(friends_family_account)
     return friends_family_accounts
 
