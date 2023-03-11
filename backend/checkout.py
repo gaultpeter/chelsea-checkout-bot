@@ -8,7 +8,7 @@ from ipg_online_payment import ipg_online_payment_processing
 
 
 def start_checkout(session_id, event_id, headers, supporter_numbers, csrf, login_response):
-    seating_response = get_seating(session_id, event_id, headers)
+    seating_response = get_seating(event_id, session_id, headers)
     threads = []
     for stand_id, stand_data in seating_response.items():
         if stand_data.get("prices").get("ADULT"):
@@ -41,7 +41,7 @@ def display_tickets(cart_id, headers, ipg_response, session_id):
 
 
 def get_ticket_info(session_id, headers, cart_id):
-    logged_response = json.loads(get_logged(session_id, headers).text)
+    logged_response = get_logged(session_id, headers)
     sale_transaction_list = logged_response["sale_transactions"]
     tickets = []
     if len(sale_transaction_list)>0:

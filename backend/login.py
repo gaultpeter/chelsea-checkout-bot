@@ -1,15 +1,11 @@
+import json
+
 import requests
 
-from error_handler import print_response
+from backend.error_handler import print_response
 
 
-def handle_login(login_details, headers):
-    response = post_login(login_details, headers)
-    if response.status_code == 200:
-        return response.json(), response.headers
-    else:
-        print_response(response)
-        return handle_login(login_details, headers)
+
 
 
 def post_login(login_details, headers):
@@ -22,8 +18,13 @@ def get_logged(session_id, headers):
         'sessionid': session_id,
     }
 
-    return requests.get(
+    response = requests.get(
         'https://smp.eu-west-1.service.3ddigitalvenue.com/friends-family/auth/logged/',
         cookies=cookies,
         headers=headers,
     )
+
+    if response.status_code == 200:
+        return json.loads(response.text)
+    else:
+        get_logged(session_id, headers)

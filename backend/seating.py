@@ -3,7 +3,7 @@ import requests
 import error_handler
 
 
-def get_seating(session_id, event_id, headers):
+def get_seating(event_id, session_id, headers):
     cookies = {
         'sessionid': session_id,
     }
@@ -16,4 +16,4 @@ def get_seating(session_id, event_id, headers):
         return json.loads(response.text)
     else:
         error_handler.print_response(response)
-        get_seating(session_id, event_id, headers)
+        get_seating(event_id, session_id, headers)
