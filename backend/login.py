@@ -1,11 +1,5 @@
 import json
-
 import requests
-
-from backend.error_handler import print_response
-
-
-
 
 
 def post_login(login_details, headers):

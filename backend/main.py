@@ -1,6 +1,6 @@
 import concurrent.futures
 
-from backend.checkout import start_checkout
+from backend.checkout_handler import start_checkout
 
 
 def start_script(session_id, event_id, headers, supporter_numbers, csrf, login_response, num_of_attempts):

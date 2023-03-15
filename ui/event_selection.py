@@ -12,7 +12,6 @@ def event_selection_window(events):
     rows = []
     top_row = ['id', 'name', 'venue', 'description']
 
-
     # Calculate the maximum number of rows needed for the table
     max_rows = 1
     for chelsea_event in events:
@@ -23,19 +22,18 @@ def event_selection_window(events):
 
         rows.append([chelsea_event['id'], chelsea_event['name'], chelsea_event['venue'], wrapped_description])
 
-
-
     tbl1 = sg.Table(values=rows, headings=top_row,
-                key='-TABLE-',
-                selected_row_colors='blue on yellow',
-                enable_events=True,
-                enable_click_events=True,
-                justification="left",
-                auto_size_columns=False,
-                col_widths=[5, 40, 20, 75],
-                row_height=max_rows*18)
+                    key='-TABLE-',
+                    selected_row_colors='blue on yellow',
+                    enable_events=True,
+                    enable_click_events=True,
+                    justification="left",
+                    auto_size_columns=False,
+                    col_widths=[5, 40, 20, 75],
+                    row_height=max_rows * 18)
 
-    layout = [[tbl1], [sg.Text("Match selected: "), sg.Text(key="-SELECTED-EVENT-"), sg.Button(button_text='Continue', key="-SUBMIT-", disabled=True)]]
+    layout = [[tbl1], [sg.Text("Match selected: "), sg.Text(key="-SELECTED-EVENT-"),
+                       sg.Button(button_text='Continue', key="-SUBMIT-", disabled=True)]]
 
     window = sg.Window("Chelsea ticket bot", layout, resizable=True)
     while True:

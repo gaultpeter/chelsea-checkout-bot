@@ -1,71 +1,130 @@
-import json
-import threading
-
-from backend.login import get_logged
-from backend.seating import get_seating
-from backend.checkout_handler import sale_transaction_put, post_checkout
-from backend.ipg_online_payment import ipg_online_payment_processing
+import requests
+import re
 
 
-def start_checkout(session_id, event_id, headers, supporter_numbers, csrf, login_response):
-    seating_response = get_seating(event_id, session_id, headers)
-    threads = []
-    checkout_results = []  # create an empty array to store the checkout results
-    for stand_id, stand_data in seating_response.items():
-        if stand_data.get("prices").get("ADULT"):
-            t = threading.Thread(target=checkout, args=(session_id, event_id, stand_id, supporter_numbers,
-                                                        stand_data, headers, csrf, login_response))
-            threads.append(t)
-            t.start()
-    for t in threads:
-        t.join()
-        checkout_result = t.checkout_result  # get the checkout result from the thread
-        checkout_results.append(checkout_result)  # append it to the checkout results array
-    return checkout_results  # return the checkout results array
+def sale_transaction_options(cart_id):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0',
+        'Accept': '*/*',
+        'Accept-Language': 'en-GB,en;q=0.5',
+        'Access-Control-Request-Method': 'PUT',
+        'Access-Control-Request-Headers': 'content-type,x-csrftoken',
+        'Referer': 'https://chelseafc.3ddigitalvenue.com/',
+        'Origin': 'https://chelseafc.3ddigitalvenue.com',
+        'Connection': 'keep-alive',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-site',
+    }
+
+    return requests.options(
+        'https://smp.eu-west-1.service.3ddigitalvenue.com/friends-family/sale_transaction/' + str(cart_id),
+        headers=headers)
 
 
-def checkout(session_id, event_id, stand_id, supporter_numbers, stand_data, headers, csrf, login_response):
-    checkout_response = post_checkout(session_id, stand_id, event_id, supporter_numbers, stand_data, headers)
-    if checkout_response.status_code == 201:
-        cart_id = json.loads(checkout_response.text)['id']
-        sale_transaction_put_response = sale_transaction_put(cart_id, session_id, csrf, login_response)
-        if sale_transaction_put_response.status_code == 200:
-            sale_transaction_response = json.loads(sale_transaction_put_response.text)
-            ipg_online_payment_processing_response = ipg_online_payment_processing(sale_transaction_response)
-            threading.current_thread().checkout_result = get_ticket_checkout_info(cart_id,
-                                                                                  headers,
-                                                                                  ipg_online_payment_processing_response,
-                                                                                  session_id)
+def get_session_string(session_id_cookie):
+    match = re.search("sessionid=([a-z0-9]+);", session_id_cookie)
+    if match:
+        return match.group(1)
     else:
-        threading.current_thread().checkout_result = "Error: " + json.loads(checkout_response.text)['message']
+        return session_id_cookie
 
 
-def get_ticket_checkout_info(cart_id, headers, ipg_response, session_id):
-    tickets = get_ticket_info(session_id, headers, cart_id)
-    seats = []
-    for ticket in tickets:
-        seat = {
-            'stand': ticket['tdc_section'],
-            'row': ticket['tdc_seat_row'],
-            'number': ticket['tdc_seat_number']
+def sale_transaction_put(cart_id, session_id, csrf, login_response):
+    sale_transaction_options_response = sale_transaction_options(cart_id)
+
+    if sale_transaction_options_response.status_code == 200:
+        import requests
+
+        cookies = {
+            'sessionid': get_session_string(session_id),
         }
-        seats.append(seat)
-    url = ipg_response.url
-    return {'seats': seats, 'url': url}
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-GB,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'X-CSRFTOKEN': csrf,
+            'Content-Type': 'application/json',
+            'Origin': 'https://chelseafc.3ddigitalvenue.com',
+            'Connection': 'keep-alive',
+            'Referer': 'https://chelseafc.3ddigitalvenue.com/',
+            'Cookie': 'sessionid=' + get_session_string(session_id),
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-site',
+        }
+
+        json_data = {
+            'delivery_method_id': 1041,
+            'delivery_method_type': 'EXTERNAL_TICKETS_AT_HOME',
+            'delivery_first_name': login_response[0]["tdc_info"]["first_name"],
+            'delivery_last_name': login_response[0]["tdc_info"]["last_name"],
+            'delivery_email': login_response[0]["email"],
+        }
+
+        return requests.put(
+            'https://smp.eu-west-1.service.3ddigitalvenue.com/friends-family/sale_transaction/' + str(cart_id) + '/',
+            cookies=cookies,
+            headers=headers,
+            json=json_data,
+        )
 
 
-def get_ticket_info(session_id, headers, cart_id):
-    logged_response = get_logged(session_id, headers)
-    sale_transaction_list = logged_response["sale_transactions"]
-    tickets = []
-    if len(sale_transaction_list) > 0:
-        for sale_transaction in sale_transaction_list:
-            if sale_transaction["id"] == cart_id:
-                sale_transaction_customer_list = sale_transaction["sale_transaction_customers"]
-                for sale_transaction_customer in sale_transaction_customer_list:
-                    buyer_type_info_list = sale_transaction_customer["buyer_type_info"]
-                    for buyer_type_info in buyer_type_info_list:
-                        seats = buyer_type_info["seats"]
-                        for seat in seats:
-                            tickets.append(seat)
-    return tickets
+def post_checkout(session_id, stand_id, event_id, supporter_numbers, stand_data, headers):
+    cookies = {
+        'sessionid': session_id,
+    }
+
+    json_data = {
+        'event': event_id,
+        'price_scale': stand_id,
+        'friends_family_accounts': create_friends_family_accounts(supporter_numbers, stand_data),
+    }
+
+    response = requests.post(
+        'https://smp.eu-west-1.service.3ddigitalvenue.com/friends-family/sale_transaction/',
+        cookies=cookies,
+        headers=headers,
+        json=json_data,
+    )
+
+    return response
+
+
+def create_friends_family_accounts(supporter_numbers, stand_data):
+    friends_family_accounts = []
+    for account in supporter_numbers:
+        friends_family_account = {"customer": account['account_id'], "seats": create_seats(stand_data, account)}
+        friends_family_accounts.append(friends_family_account)
+    return friends_family_accounts
+
+
+def create_seats(stand_data, account):
+    prices = stand_data.get("prices")
+    category = account['ticket_type']
+    if category == "ADULT":
+        return {
+            str(prices["ADULT"]["id"]): {
+                "num_tickets": 1,
+                "code": prices["ADULT"]["code"],
+                "name": prices["ADULT"]["name"],
+            }
+        }
+    if category == "JUNIOR":
+        return {
+            str(prices["JUNIOR"]["id"]): {
+                "num_tickets": 1,
+                "code": prices["JUNIOR"]["code"],
+                "name": prices["JUNIOR"]["name"],
+            }
+        }
+    if category == "SENIOR":
+        return {
+            str(prices["SENIOR"]["id"]): {
+                "num_tickets": 1,
+                "code": prices["SENIOR"]["code"],
+                "name": prices["SENIOR"]["name"],
+            }
+        }

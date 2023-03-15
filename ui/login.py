@@ -1,4 +1,3 @@
-import base64
 import json
 import PySimpleGUI as sg
 from backend.login import post_login
