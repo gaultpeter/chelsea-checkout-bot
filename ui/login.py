@@ -1,3 +1,4 @@
+import base64
 import json
 import PySimpleGUI as sg
 from backend.login import post_login
@@ -18,7 +19,7 @@ def login_window():
               [sg.Column(login_form_column, element_justification="right")]]
 
     # Create the window
-    window = sg.Window("Chelsea ticket bot", layout)
+    window = sg.Window("Chelsea ticket bot", layout, icon="../resources/icon.ico")
 
     while True:
         event, values = window.read()
