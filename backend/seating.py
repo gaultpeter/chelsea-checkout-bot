@@ -1,6 +1,7 @@
 import json
 import requests
-import error_handler
+
+from backend.error_handler import print_response
 
 
 def get_seating(event_id, session_id, headers):
@@ -15,5 +16,5 @@ def get_seating(event_id, session_id, headers):
     if response.status_code == 200:
         return json.loads(response.text)
     else:
-        error_handler.print_response(response)
+        print_response(response)
         get_seating(event_id, session_id, headers)

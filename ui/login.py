@@ -18,7 +18,7 @@ def login_window():
               [sg.Column(login_form_column, element_justification="right")]]
 
     # Create the window
-    window = sg.Window("Chelsea ticket bot - Login", layout)
+    window = sg.Window("Chelsea ticket bot", layout)
 
     while True:
         event, values = window.read()
@@ -30,24 +30,32 @@ def login_window():
             with open("../resources/headers.json", "r") as headers_file:
                 headers = json.load(headers_file)
             login_details = json.dumps({"username": email, "password": password})
-            login_response = handle_login(login_details, headers)
+            login_response = handle_login(login_details, headers, 0)
+            if login_response == "Error":
+                return "Error"
             if login_response:
                 csrf = login_response[0].get("csrf")
                 session_id = login_response[1].get("set-cookie")
                 headers['X-CSRFTOKEN'] = csrf
                 headers['Cookie'] = session_id
                 window.close()
-                return csrf, session_id, headers
+                return csrf, session_id, headers, login_response
+        if event == sg.WIN_CLOSED:
+            break
     window.close()
 
 
-def handle_login(login_details, headers):
+def handle_login(login_details, headers, error_count):
     response = post_login(login_details, headers)
     status_code = response.status_code
-    if status_code == 200:
-        return json.loads(response.text), response.headers
-    else:
-        if status_code == 401:
-            sg.Popup('Incorrect login details provided')
+    if error_count < 100:
+        if status_code == 200:
+            return json.loads(response.text), response.headers
         else:
-            return handle_login(login_details, headers)
+            if status_code == 401:
+                sg.Popup('Incorrect login details provided')
+            else:
+                error_count = error_count + 1
+                return handle_login(login_details, headers, error_count)
+    else:
+        return "Error"
