@@ -23,7 +23,7 @@ def friends_and_family_selection_window(accounts):
 
     layout.append([sg.Button('Submit', disabled=True, key="-SUBMIT-")])
 
-    window = sg.Window('Chelsea ticket bot', layout)
+    window = sg.Window('Chelsea ticket bot', layout, icon="../resources/icon.ico")
 
     while True:
         event, values = window.read()

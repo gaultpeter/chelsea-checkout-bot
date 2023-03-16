@@ -29,7 +29,7 @@ def display_results_window(results):
     ]
 
     # Create the window
-    window = sg.Window("Chelsea ticket bot", layout)
+    window = sg.Window("Chelsea ticket bot", layout, icon="../resources/icon.ico")
 
     while True:
         event, values = window.read()

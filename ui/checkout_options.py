@@ -10,7 +10,7 @@ def configuration_window():
         [sg.Button('Start at inputted time', key="-SUBMIT-"), sg.Button('Start now', key="-STARTNOW-")]
     ]
 
-    window = sg.Window('Chelsea ticket bot', layout)
+    window = sg.Window('Chelsea ticket bot', layout, icon="../resources/icon.ico")
 
     while True:
         event, values = window.read()

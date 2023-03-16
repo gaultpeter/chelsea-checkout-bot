@@ -35,7 +35,7 @@ def event_selection_window(events):
     layout = [[tbl1], [sg.Text("Match selected: "), sg.Text(key="-SELECTED-EVENT-"),
                        sg.Button(button_text='Continue', key="-SUBMIT-", disabled=True)]]
 
-    window = sg.Window("Chelsea ticket bot", layout, resizable=True)
+    window = sg.Window("Chelsea ticket bot", layout, resizable=True, icon="../resources/icon.ico")
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED:
