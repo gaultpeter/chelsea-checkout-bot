@@ -1,6 +1,7 @@
 import json
 import requests
-import error_handler
+
+from backend import error_handler
 
 
 def get_seating(session_id, event_id, headers):
