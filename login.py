@@ -4,10 +4,13 @@ from error_handler import print_response
 
 
 def handle_login(login_details, headers):
+    print("Attempting login...")
     response = post_login(login_details, headers)
     if response.status_code == 200:
+        print("Login success!")
         return response.json(), response.headers
     else:
+        print("Retrying login...")
         print_response(response)
         return handle_login(login_details, headers)
 

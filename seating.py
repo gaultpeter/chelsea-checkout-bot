@@ -4,6 +4,7 @@ import error_handler
 
 
 def get_seating(session_id, event_id, headers):
+    print("Getting stands available...")
     cookies = {
         'sessionid': session_id,
     }
@@ -15,5 +16,6 @@ def get_seating(session_id, event_id, headers):
     if response.status_code == 200:
         return json.loads(response.text)
     else:
+        print("Error in getting stands, retrying...")
         error_handler.print_response(response)
         get_seating(session_id, event_id, headers)
