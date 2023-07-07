@@ -6,4 +6,3 @@ responses==0.22.0
 toml==0.10.2
 types-toml==0.10.8.2
 urllib3==1.26.14
-PySimpleGUI~=4.60.4

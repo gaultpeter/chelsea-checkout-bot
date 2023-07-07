@@ -95,36 +95,18 @@ def post_checkout(session_id, stand_id, event_id, supporter_numbers, stand_data,
 
 def create_friends_family_accounts(supporter_numbers, stand_data):
     friends_family_accounts = []
-    for account in supporter_numbers:
-        friends_family_account = {"customer": account['account_id'], "seats": create_seats(stand_data, account)}
+    for supporter_number in supporter_numbers:
+        friends_family_account = {"customer": supporter_number, "seats": create_adult_seats(stand_data)}
         friends_family_accounts.append(friends_family_account)
     return friends_family_accounts
 
 
-def create_seats(stand_data, account):
+def create_adult_seats(stand_data):
     prices = stand_data.get("prices")
-    category = account['ticket_type']
-    if category == "ADULT":
-        return {
-            str(prices["ADULT"]["id"]): {
-                "num_tickets": 1,
-                "code": prices["ADULT"]["code"],
-                "name": prices["ADULT"]["name"],
-            }
+    return {
+        str(prices["ADULT"]["id"]): {
+            "num_tickets": 1,
+            "code": prices["ADULT"]["code"],
+            "name": prices["ADULT"]["name"],
         }
-    if category == "JUNIOR":
-        return {
-            str(prices["JUNIOR"]["id"]): {
-                "num_tickets": 1,
-                "code": prices["JUNIOR"]["code"],
-                "name": prices["JUNIOR"]["name"],
-            }
-        }
-    if category == "SENIOR":
-        return {
-            str(prices["SENIOR"]["id"]): {
-                "num_tickets": 1,
-                "code": prices["SENIOR"]["code"],
-                "name": prices["SENIOR"]["name"],
-            }
-        }
+    }

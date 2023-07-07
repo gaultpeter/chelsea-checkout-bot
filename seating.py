@@ -1,10 +1,10 @@
 import json
 import requests
+import error_handler
 
-from backend.error_handler import print_response
 
-
-def get_seating(event_id, session_id, headers):
+def get_seating(session_id, event_id, headers):
+    print("Getting stands available...")
     cookies = {
         'sessionid': session_id,
     }
@@ -16,5 +16,6 @@ def get_seating(event_id, session_id, headers):
     if response.status_code == 200:
         return json.loads(response.text)
     else:
-        print_response(response)
-        get_seating(event_id, session_id, headers)
+        print("Error in getting stands, retrying...")
+        error_handler.print_response(response)
+        get_seating(session_id, event_id, headers)

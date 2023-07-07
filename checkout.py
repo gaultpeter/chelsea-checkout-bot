@@ -1,16 +1,14 @@
 import json
 import threading
 
-from backend.login import get_logged
-from backend.seating import get_seating
-from backend.checkout import sale_transaction_put, post_checkout
-from backend.ipg_online_payment import ipg_online_payment_processing
+from login import get_logged
+from seating import get_seating
+from checkout_handler import sale_transaction_put, post_checkout
 
 
 def start_checkout(session_id, event_id, headers, supporter_numbers, csrf, login_response):
-    seating_response = get_seating(event_id, session_id, headers)
+    seating_response = get_seating(session_id, event_id, headers)
     threads = []
-    checkout_results = []  # create an empty array to store the checkout results
     for stand_id, stand_data in seating_response.items():
         if stand_data.get("prices").get("ADULT"):
             t = threading.Thread(target=checkout, args=(session_id, event_id, stand_id, supporter_numbers,
@@ -19,41 +17,30 @@ def start_checkout(session_id, event_id, headers, supporter_numbers, csrf, login
             t.start()
     for t in threads:
         t.join()
-        checkout_result = t.checkout_result  # get the checkout result from the thread
-        checkout_results.append(checkout_result)  # append it to the checkout results array
-    return checkout_results  # return the checkout results array
 
 
 def checkout(session_id, event_id, stand_id, supporter_numbers, stand_data, headers, csrf, login_response):
+    print(f"Checking out tickets in: {stand_data['name']}")
     checkout_response = post_checkout(session_id, stand_id, event_id, supporter_numbers, stand_data, headers)
     if checkout_response.status_code == 201:
         cart_id = json.loads(checkout_response.text)['id']
         sale_transaction_put_response = sale_transaction_put(cart_id, session_id, csrf, login_response)
         if sale_transaction_put_response.status_code == 200:
-            sale_transaction_response = json.loads(sale_transaction_put_response.text)
-            ipg_online_payment_processing_response = ipg_online_payment_processing(sale_transaction_response)
-            threading.current_thread().checkout_result = \
-                get_ticket_checkout_info(cart_id, headers, ipg_online_payment_processing_response, session_id)
-    else:
-        threading.current_thread().checkout_result = "Error: " + json.loads(checkout_response.text)['message']
+            print("Successful checkout...")
+            display_tickets(cart_id, headers, session_id)
 
 
-def get_ticket_checkout_info(cart_id, headers, ipg_response, session_id):
+def display_tickets(cart_id, headers, session_id):
+    cart_url = f"https://chelseafc.3ddigitalvenue.com/buy-tickets/checkout;transaction={cart_id};flow=tickets"
     tickets = get_ticket_info(session_id, headers, cart_id)
-    seats = []
-    for ticket in tickets:
-        seat = {
-            'stand': ticket['tdc_section'],
-            'row': ticket['tdc_seat_row'],
-            'number': ticket['tdc_seat_number']
-        }
-        seats.append(seat)
-    url = ipg_response.url
-    return {'seats': seats, 'url': url}
+    ticket_info = "\n".join([f"Stand: {ticket['tdc_section']} Row: {ticket['tdc_seat_row']} Seat number: "
+                             f"{ticket['tdc_seat_number']}" for ticket in tickets])
+    ticket_info += "\n" + cart_url + "\n"
+    print(ticket_info)
 
 
 def get_ticket_info(session_id, headers, cart_id):
-    logged_response = get_logged(session_id, headers)
+    logged_response = json.loads(get_logged(session_id, headers).text)
     sale_transaction_list = logged_response["sale_transactions"]
     tickets = []
     if len(sale_transaction_list) > 0:
