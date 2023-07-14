@@ -1,5 +1,7 @@
+import datetime
 import json
 import threading
+import os
 
 from login import get_logged
 from seating import get_seating
@@ -31,11 +33,17 @@ def checkout(session_id, event_id, stand_id, supporter_numbers, stand_data, head
 
 
 def display_tickets(cart_id, headers, session_id):
+    now = datetime.datetime.now()
+    expiry_time = (now + datetime.timedelta(minutes=10)).strftime("%H:%M:%S")
     cart_url = f"https://chelseafc.3ddigitalvenue.com/buy-tickets/checkout;transaction={cart_id};flow=tickets"
     tickets = get_ticket_info(session_id, headers, cart_id)
     ticket_info = "\n".join([f"Stand: {ticket['tdc_section']} Row: {ticket['tdc_seat_row']} Seat number: "
                              f"{ticket['tdc_seat_number']}" for ticket in tickets])
+    ticket_info += "\n" + "Expires: " + expiry_time
     ticket_info += "\n" + cart_url + "\n"
+    with open("carts.txt", "a") as cart_file:
+        cart_file.write(ticket_info)
+        cart_file.write("\n")
     print(ticket_info)
 
 
