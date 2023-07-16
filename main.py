@@ -2,8 +2,25 @@ import json
 import time
 import concurrent.futures
 
+from events import handle_get_events
 from login import handle_login
 from checkout import start_checkout
+
+
+def get_events():
+    with open("./resources/headers.json", "r") as headers_file:
+        headers = json.load(headers_file)
+    with open("resources/login_details.json", "r") as login_details_file:
+        data = json.load(login_details_file)
+        login_details = json.dumps(data)
+    login_response = handle_login(login_details, headers)
+    csrf = login_response[0].get("csrf")
+    session_id = login_response[1].get("set-cookie")
+    headers['X-CSRFTOKEN'] = csrf
+    headers['Cookie'] = session_id
+    events = handle_get_events(headers)
+    for event in events:
+        print(event['id'], event['name'])
 
 
 def start_script():
@@ -36,8 +53,11 @@ if __name__ == '__main__':
     event_id = ""
     num_of_attempts = 1
 
+    # get_events()
+
     print("Waiting for start time: " + on_sale_time)
     while time.strftime("%H:%M:%S") < on_sale_time:
         print("Current time: " + time.strftime("%H:%M:%S"))
         time.sleep(0.5)
+
     start_script()
