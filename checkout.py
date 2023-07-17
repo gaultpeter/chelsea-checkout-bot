@@ -1,7 +1,6 @@
 import datetime
 import json
 import threading
-import os
 
 from login import get_logged
 from seating import get_seating
@@ -30,6 +29,8 @@ def checkout(session_id, event_id, stand_id, supporter_numbers, stand_data, head
         if sale_transaction_put_response.status_code == 200:
             print("Successful checkout...")
             display_tickets(cart_id, headers, session_id)
+    else:
+        print(stand_data['name'] + ' ' + checkout_response.text)
 
 
 def display_tickets(cart_id, headers, session_id):

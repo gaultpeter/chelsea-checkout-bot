@@ -48,12 +48,12 @@ def start_script():
 
 if __name__ == '__main__':
 
+    get_events()
+
     on_sale_time = "09:59:59"
     supporter_numbers = []
     event_id = ""
     num_of_attempts = 1
-
-    # get_events()
 
     print("Waiting for start time: " + on_sale_time)
     while time.strftime("%H:%M:%S") < on_sale_time:
